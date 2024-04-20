@@ -1,17 +1,55 @@
 const std = @import("std");
 
-pub fn main() !void {
-    // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+const ArgErrors = error{InvalidParameterValue};
 
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
+pub fn main() !void {
+    std.log.debug("Creating Allocator ...", .{});
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
     const stdout_file = std.io.getStdOut().writer();
     var bw = std.io.bufferedWriter(stdout_file);
     const stdout = bw.writer();
 
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
+    var argIterator = try std.process.argsWithAllocator(allocator);
+    defer argIterator.deinit();
+
+    var width: usize = 100;
+    var height: usize = 100;
+
+    // parse width and height from CLI args.
+    while (true) {
+        const maybeArg = argIterator.next();
+        if (maybeArg) |arg| {
+            std.log.debug("found argument {s}", .{arg});
+            if (std.mem.eql(u8, arg, "--width")) {
+                width = try std.fmt.parseInt(usize, argIterator.next() orelse "0", 10);
+            }
+            if (std.mem.eql(u8, arg, "--height")) {
+                height = try std.fmt.parseInt(usize, argIterator.next() orelse "0", 10);
+            }
+            if (std.mem.eql(u8, arg, "--help")) {
+                try stdout.print(
+                    \\parameters:
+                    \\  --width of the image to be generated in pixels. Default: 100
+                    \\  --height of the image to be generated in pixels. Default: 100
+                    \\  --help displays this menu.
+                    \\
+                , .{});
+                try bw.flush();
+                std.process.exit(0);
+            }
+            continue;
+        }
+        std.log.debug("done parsing args ...", .{});
+        if (width == 0 or height == 0) {
+            return error.InvalidParameterValue;
+        }
+        std.log.debug("captured argument width of: {}", .{width});
+        std.log.debug("captured argument height of: {}", .{height});
+        break;
+    }
 
     try bw.flush(); // don't forget to flush!
 }
