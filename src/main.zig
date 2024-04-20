@@ -17,6 +17,7 @@ pub fn main() !void {
 
     var width: usize = 100;
     var height: usize = 100;
+    var output_file: [:0]const u8 = "output.bmp";
 
     // parse width and height from CLI args.
     while (true) {
@@ -29,11 +30,15 @@ pub fn main() !void {
             if (std.mem.eql(u8, arg, "--height")) {
                 height = try std.fmt.parseInt(usize, argIterator.next() orelse "0", 10);
             }
+            if (std.mem.eql(u8, arg, "--output")) {
+                output_file = argIterator.next() orelse "";
+            }
             if (std.mem.eql(u8, arg, "--help")) {
                 try stdout.print(
                     \\parameters:
                     \\  --width of the image to be generated in pixels. Default: 100
                     \\  --height of the image to be generated in pixels. Default: 100
+                    \\  --output file name to be used when creating the image to be generated. Default: "output.bmp"
                     \\  --help displays this menu.
                     \\
                 , .{});
@@ -42,12 +47,14 @@ pub fn main() !void {
             }
             continue;
         }
+
         std.log.debug("done parsing args ...", .{});
-        if (width == 0 or height == 0) {
+        if (width == 0 or height == 0 or std.mem.eql(u8, output_file, "")) {
             return error.InvalidParameterValue;
         }
         std.log.debug("captured argument width of: {}", .{width});
         std.log.debug("captured argument height of: {}", .{height});
+        std.log.debug("captured argument output of: \"{s}\"", .{output_file});
         break;
     }
 
