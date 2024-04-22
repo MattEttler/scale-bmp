@@ -57,7 +57,7 @@ pub fn main() !void {
     const bytes_per_pixel = 3;
     const row_byte_alignment = 4;
     const bytes_per_row_raw: u32 = bytes_per_pixel * width;
-    const bytes_per_row_padded: u32 = bytes_per_row_raw + ((bytes_per_row_raw - row_byte_alignment) % row_byte_alignment);
+    const bytes_per_row_padded: u32 = bytes_per_row_raw + (bytes_per_row_raw % row_byte_alignment);
     const pixel_region_size: u32 = height * (bytes_per_row_padded);
     const pixel_region = try allocator.alloc(u8, pixel_region_size);
 
