@@ -1,4 +1,4 @@
-const bmp = @import("./bmp.zig");
+const bmp = @import("bmp.zig");
 
 const std = @import("std");
 
