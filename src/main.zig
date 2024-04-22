@@ -56,10 +56,9 @@ pub fn main() !void {
 
     const bytes_per_pixel = 3;
     const row_byte_alignment = 4;
-    const bytes_per_row_raw: u32 = bytes_per_pixel * width;
-    const bytes_per_row_padded: u32 = bytes_per_row_raw + (bytes_per_row_raw % row_byte_alignment);
-    const pixel_region_size: u32 = height * (bytes_per_row_padded);
-    const pixel_region = try allocator.alloc(u8, pixel_region_size);
+    const bytes_per_row: u32 = bytes_per_pixel * width;
+    const row_padding: u32 = bytes_per_row % row_byte_alignment;
+    const pixel_region_size: u32 = height * (bytes_per_row + row_padding);
 
     const file_data = bmp.ImageFile{
         .header = bmp.Header{
@@ -87,8 +86,17 @@ pub fn main() !void {
     std.log.debug("writing file to stdout ...", .{});
     try stdout.writeAll(&std.mem.toBytes(file_data));
 
-    for (pixel_region) |byte| {
-        try stdout.writeAll(byte);
+    const row = try allocator.alloc(u8, (width * bytes_per_pixel) + row_padding);
+    var x: usize = 0;
+    while (x < width * 3) : (x += 3) {
+        row[x] = undefined;
+        row[x + 1] = undefined;
+        row[x + 2] = undefined;
+    }
+
+    var y: usize = 0;
+    while (y < height) : (y += 1) {
+        try stdout.writeAll(row);
     }
     std.log.debug("finished writing file to stdout ...", .{});
 
