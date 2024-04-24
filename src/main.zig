@@ -19,6 +19,9 @@ pub fn main() !void {
 
     var width: u32 = 100;
     var height: u32 = 100;
+    var red: u8 = 0;
+    var green: u8 = 0;
+    var blue: u8 = 0;
 
     // parse width and height from CLI args.
     while (true) {
@@ -31,11 +34,23 @@ pub fn main() !void {
             if (std.mem.eql(u8, arg, "--height")) {
                 height = try std.fmt.parseInt(u32, argIterator.next() orelse "0", 10);
             }
+            if (std.mem.eql(u8, arg, "--red")) {
+                red = try std.fmt.parseInt(u8, argIterator.next() orelse "0", 10);
+            }
+            if (std.mem.eql(u8, arg, "--green")) {
+                green = try std.fmt.parseInt(u8, argIterator.next() orelse "0", 10);
+            }
+            if (std.mem.eql(u8, arg, "--blue")) {
+                blue = try std.fmt.parseInt(u8, argIterator.next() orelse "0", 10);
+            }
             if (std.mem.eql(u8, arg, "--help")) {
                 try stdout.print(
                     \\parameters:
                     \\  --width of the image to be generated in pixels. Default: 100
                     \\  --height of the image to be generated in pixels. Default: 100
+                    \\  --red value of the image to be generated. Valid values are in the range 0-255. Default: 0
+                    \\  --green value of the image to be generated. Valid values are in the range 0-255. Default: 0
+                    \\  --blue value of the image to be generated. Valid values are in the range 0-255. Default: 0
                     \\  --help displays this menu.
                     \\
                 , .{});
@@ -51,6 +66,9 @@ pub fn main() !void {
         }
         std.log.debug("captured argument width of: {}", .{width});
         std.log.debug("captured argument height of: {}", .{height});
+        std.log.debug("captured argument red of: {}", .{red});
+        std.log.debug("captured argument green of: {}", .{green});
+        std.log.debug("captured argument blue of: {}", .{blue});
         break;
     }
 
@@ -89,9 +107,9 @@ pub fn main() !void {
     const row = try allocator.alloc(u8, (width * bytes_per_pixel) + row_padding);
     var x: usize = 0;
     while (x < width * 3) : (x += 3) {
-        row[x] = undefined;
-        row[x + 1] = undefined;
-        row[x + 2] = undefined;
+        row[x] = std.mem.nativeToLittle(u8, red);
+        row[x + 1] = std.mem.nativeToLittle(u8, blue);
+        row[x + 2] = std.mem.nativeToLittle(u8, green);
     }
 
     var y: usize = 0;
